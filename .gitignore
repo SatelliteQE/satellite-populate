@@ -60,3 +60,6 @@ target/
 
 # pyenv python configuration file
 .python-version
+
+# validation files in examples folder
+examples/validation_*

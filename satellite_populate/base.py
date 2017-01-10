@@ -9,9 +9,12 @@ from collections import Sequence
 import fauxfactory
 import import_string
 from jinja2 import Template
-from nailgun import entities
+from nailgun import entities, entity_mixins
+from nailgun.config import ServerConfig
 from nailgun.entity_mixins import EntitySearchMixin, EntityReadMixin
-# from robottelo.config import settings
+from six import string_types
+from six.moves.urllib.parse import urlunsplit
+
 from satellite_populate import assertion_operators
 from satellite_populate.constants import (
     DEFAULT_CONFIG,
@@ -25,7 +28,6 @@ from satellite_populate.utils import (
     format_result,
     remove_keys
 )
-from six import string_types
 
 logger = logging.getLogger(__name__)
 
@@ -33,16 +35,15 @@ logger = logging.getLogger(__name__)
 class BasePopulator(object):
     """Base class for API and CLI populators"""
 
-    def __init__(self, data, verbose=None, mode='populate', config=None):
+    def __init__(self, data, verbose=None, mode=None, config=None):
         """Reads YAML and initialize populator"""
-        # if not settings.configured:
-        #     settings.configure()
 
         self.data = data
         self.custom_config = config or {}
         self._config = None
 
-        self.mode = mode
+        self.input_filename = data.get('input_filename')
+
         self.vars = SmartDict(data.get('vars', {}))
 
         self.actions = data.get('actions')
@@ -52,7 +53,6 @@ class BasePopulator(object):
         self.rendered_actions = []
 
         self.logger = logger
-        set_logger(verbose or 0)
 
         self.registry = SmartDict()
         self.validation_errors = []
@@ -66,6 +66,25 @@ class BasePopulator(object):
 
         self.load_raw_search_rules()
 
+        self.mode = mode or self.config.get('mode') or 'populate'
+        self.scheme = self.config.get('scheme')
+        self.port = self.config.get('port')
+
+        self.hostname = self.config.get('hostname')
+
+        self.username = self.config.get(
+            'username') or DEFAULT_CONFIG.get('username')
+        self.password = self.config.get(
+            'password') or DEFAULT_CONFIG.get('password')
+
+        if entity_mixins.DEFAULT_SERVER_CONFIG is None:
+            self._configure_nailgun()
+
+        self.verbose = verbose if verbose is not None else self.config.get(
+            'verbose', 0
+        )
+        set_logger(self.verbose)
+
     # main
 
     @property
@@ -74,8 +93,8 @@ class BasePopulator(object):
         user in datafile or by custom populator"""
         if not self._config:
             self._config = DEFAULT_CONFIG.copy()
-            self._config.update(self.custom_config)
             self._config.update(self.data.get('config', {}))
+            self._config.update(self.custom_config)
         return self._config
 
     @property
@@ -96,6 +115,7 @@ class BasePopulator(object):
         depending on `mode` execute `populate` or `validate`
         """
         mode = mode or self.mode
+        self.logger.info("Starting in %s mode", mode)
         for action_data in self.actions:
             action = action_data.get('action', 'create')
 
@@ -397,7 +417,8 @@ class BasePopulator(object):
                     result = getattr(result, value)
                 elif isinstance(value, dict):
                     if len(value.keys()) == 1 and isinstance(
-                            value.values()[0], dict):
+                        value.values()[0], dict
+                    ):
                         # call named function
                         result = getattr(
                             result, value.keys()[0]
@@ -420,8 +441,8 @@ class BasePopulator(object):
         """Build search data and returns a dict containing elements
 
         - data
-          Dictionary of parsed rendered_action_data to be used to instantiate an object
-          to searched without raw_query.
+          Dictionary of parsed rendered_action_data to be used to i
+          nstantiate an object to searched without raw_query.
 
         - options
           if `search_options` are specified it is passed to
@@ -667,29 +688,6 @@ class BasePopulator(object):
                 registry_key
             )
 
-            # if action_data.get('with_items'):
-            #     if registry_key in self.registry:
-            #         self.registry[registry_key].append(result)
-            #         self.logger.info(
-            #             "registry: %s appended to %s",
-            #             format_result(result),
-            #             registry_key
-            #         )
-            #     else:
-            #         self.registry[registry_key] = [result]
-            #         self.logger.info(
-            #             "registry: %s registered as %s",
-            #             format_result(result),
-            #             registry_key
-            #         )
-            # else:
-            #     self.registry[registry_key] = result
-            #     self.logger.info(
-            #         "registry: %s registered as %s",
-            #         format_result(result),
-            #         registry_key
-            #     )
-
     def add_rendered_action(self, action_data, rendered_action_data):
         """Add rendered action to be written in validation file"""
         data = remove_keys(
@@ -706,9 +704,6 @@ class BasePopulator(object):
                     a_dict[k] = rendered_action_data[k]
                 else:
                     persist_factory(v)
-
-        # if data not in self.rendered_actions:
-
 
         persist_factory(data)
         if data.get('with_items'):
@@ -760,7 +755,8 @@ class BasePopulator(object):
     def action_register(self, rendered_action_data, action_data):
         """Register arbitrary items to the registry"""
         for key, value in remove_keys(
-                rendered_action_data, 'loop_index').items():
+            rendered_action_data, 'loop_index'
+        ).items():
             data = remove_keys(action_data.copy(), 'loop_index')
             data['register'] = key
             self.add_to_registry(data, value)
@@ -837,3 +833,97 @@ class BasePopulator(object):
             'rendered_action_data': rendered_action_data,
             'action_data': action_data
         })
+
+    # nailgun settings
+
+    def _configure_nailgun(self):
+        """Configure NailGun's entity classes.
+
+        Do the following:
+
+        * Set ``entity_mixins.CREATE_MISSING`` to ``True``. This causes method
+        ``EntityCreateMixin.create_raw`` to generate values for empty and
+        required fields.
+        * Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG``. See
+        ``robottelo.entity_mixins.Entity`` for more information on the effects
+        of this.
+        * Set a default value for ``nailgun.entities.GPGKey.content``.
+        * Set the default value for
+          ``nailgun.entities.DockerComputeResource.url``
+        if either ``docker.internal_url`` or ``docker.external_url`` is set in
+        the configuration file.
+        """
+        entity_mixins.CREATE_MISSING = self.config.get('create_missing', True)
+        entity_mixins.DEFAULT_SERVER_CONFIG = ServerConfig(
+            self._get_url(),
+            self._get_credentials(),
+            verify=False,
+        )
+
+        if self.config.get('gpgkey'):
+            self.set_gpgkey()
+
+    def set_gpgkey(self):
+        """Set gpgkey"""
+        gpgkey_init = entities.GPGKey.__init__
+
+        gpgkey = self.config['gpgkey']
+
+        def patched_gpgkey_init(this, server_config=None, **kwargs):
+            """Set a default value on the ``content`` field."""
+            gpgkey_init(this, server_config, **kwargs)
+            this._fields['content'].default = gpgkey.get('content')
+
+        entities.GPGKey.__init__ = patched_gpgkey_init
+
+        # NailGun provides a default value for ComputeResource.url. We override
+        # that value if `docker_url` is set on config['gpgkey'].
+        # Try getting internal url
+        docker_url = gpgkey.get('docker_url')
+        if docker_url is not None:
+            dockercr_init = entities.DockerComputeResource.__init__
+
+            def patched_dockercr_init(this, server_config=None, **kwargs):
+                """Set a default value on the ``docker_url`` field."""
+                dockercr_init(this, server_config, **kwargs)
+                this._fields['url'].default = docker_url
+
+            entities.DockerComputeResource.__init__ = patched_dockercr_init
+
+    def _get_url(self):
+        """Return the base URL of the Foreman deployment being tested.
+
+        The following values from the config file are used to build the URL:
+
+        * ``[server] scheme`` (default: https)
+        * ``[server] hostname`` (required)
+        * ``[server] port`` (default: none)
+
+        Setting ``port`` to 80 does *not* imply that ``scheme`` is 'https'. If
+        ``port`` is 80 and ``scheme`` is unset, ``scheme`` will still default
+        to 'https'.
+
+        :return: A URL.
+        :rtype: str
+
+        """
+        if not self.scheme:
+            scheme = 'https'
+        else:
+            scheme = self.scheme
+        # All anticipated error cases have been handled at this point.
+        if not self.port:
+            return urlunsplit((scheme, self.hostname, '', '', ''))
+        else:
+            return urlunsplit((
+                scheme, '{0}:{1}'.format(self.hostname, self.port), '', '', ''
+            ))
+
+    def _get_credentials(self):
+        """Return credentials for interacting with a Foreman deployment API.
+
+        :return: A username-password pair.
+        :rtype: tuple
+
+        """
+        return (self.username, self.password)

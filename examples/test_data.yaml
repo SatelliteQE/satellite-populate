@@ -7,9 +7,10 @@ config:
       module: satellite_populate.cli.CLIPopulator
 
 vars:
-  admin_username: admin
-  admin_password: changeme
+  username: admin
+  password: changeme
   userdefaultorg: Default Organization
+  yumrepo: http://inecas.fedorapeople.org/fakerepos/zoo/
   org_list:
     - company7
     - company8
@@ -131,9 +132,7 @@ actions:
       product:
         from_registry: product
       content_type: yum
-      url:
-        from_object:
-          name: robottelo.constants.FAKE_2_YUM_REPO
+      url: "{{ yumrepo }}"
 
 
   - model: Repository
@@ -144,9 +143,7 @@ actions:
         from_registry: product
       content_type: yum
       download_policy: on_demand
-      url:
-        from_object:
-          name: robottelo.constants.FAKE_0_YUM_REPO
+      url: "{{ yumrepo }}"
 
   # A TEST CASE USING SPECIAL ACTIONS
   # Create a plain vanilla activation key
@@ -200,9 +197,7 @@ actions:
            data:
              name: Orgcompany5
 
-       fake_repo:
-         from_object:
-           name: robottelo.constants.FAKE_0_YUM_REPO
+       fake_repo: "{{ yumrepo }}"
 
        random: "{{ fauxfactory.gen_string('alpha') }}"
 
@@ -251,8 +246,7 @@ actions:
     log: Hey Ho Lets Go!
     operator: eq  # eq, ne, gt, lt, gte, lte, identity
     data:
-      - from_object:
-          name: robottelo.constants.FAKE_0_YUM_REPO
+      - "{{ yumrepo }}"
       - http://inecas.fedorapeople.org/fakerepos/zoo/
 
   - action: assertion
