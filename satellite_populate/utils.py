@@ -78,8 +78,14 @@ def import_from_string(import_name, *args, **kwars):
     try:
         return import_string(import_name, *args, **kwars)
     except:
-        import_name = "{0}.{1}".format(builtins.__name__, import_name)
-        return import_string(import_name, *args, **kwars)
+        new_import_name = "{0}.{1}".format(builtins.__name__, import_name)
+        try:
+            return import_string(new_import_name, *args, **kwars)
+        except Exception as e:
+            raise ImportError(
+                "%s cannot be imported, is that installed? error: %s" %
+                (import_name, str(e))
+            )
 
 
 def format_result(result):
@@ -106,4 +112,12 @@ def remove_keys(data, *args, **kwargs):
 
     return {
         k: v for k, v in data.items() if k not in args
+    }
+
+
+def remove_nones(data):
+    """remove nones from data"""
+    return {
+        k: v for k, v in data.items()
+        if v is not None
     }

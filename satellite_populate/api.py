@@ -3,6 +3,7 @@
 from nailgun import entities
 from nailgun.entity_mixins import EntitySearchMixin
 from requests.exceptions import HTTPError
+
 from satellite_populate.base import BasePopulator
 
 
@@ -125,7 +126,8 @@ class APIPopulator(BasePopulator):
         """
         silent_errors = action_data.get('silent_errors', False)
         if action not in ['create', 'assertion'] or action_data.get(
-                'skip_validation'):
+            'skip_validation'
+        ):
             # validate only create and assertion crud actions
             return
 

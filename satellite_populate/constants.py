@@ -38,5 +38,9 @@ DEFAULT_CONFIG = SmartDict({
             'module': 'satellite_populate.api.APIPopulator'
         }
     },
-    'verbose': 0
+    'verbose': 0,
+    'username': 'admin',
+    'password': 'changeme',
+    'hostname': None,
+    'output': 'validate_data.yaml'
 })
