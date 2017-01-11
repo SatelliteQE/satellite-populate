@@ -1,0 +1,36 @@
+vars:
+  org_names:
+    - Dunder Mifflin
+    - Wernham Hogg
+actions:
+  - model: Organization
+    register: default_orgs
+    data:
+      name: "{{ item }}"
+      label: org{{ item|replace(' ', '') }}
+      description: This is a satellite organization named {{ item }}
+    with_items: org_names
+  - model: User
+    data:
+      admin: true
+      firstname: Michael
+      lastname: Scott
+      login: mscott
+      password:
+        from_factory: alpha
+      organization:
+        from_registry: default_orgs
+      default_organization:
+        from_registry: default_orgs[0]
+  - model: User
+    data:
+      admin: true
+      firstname: David
+      lastname: Brent
+      login: dbrent
+      password:
+        from_factory: alpha
+      organization:
+        from_registry: default_orgs
+      default_organization:
+        from_registry: default_orgs[1]
