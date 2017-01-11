@@ -245,15 +245,24 @@ Then you can use in decorators::
 
 And getting the populated entities inside the test_case::
 
-    @populate_with('file.yaml', context=True)
-    def test_case_(self, context=None):
-        assert context.entities.organization_1.name == 'My Org'
+        @populate_with('file.yaml', context_name='my_context')
+        def test_case_(self, my_context=None):
+            assert my_context.organization_1.name == 'My Org'
 
-You can also set a name to the context argument::
+        You can also set a customized context wrapper to the
+        context_wrapper argument::
 
-    @populate_with('file.yaml', context='my_context')
-    def test_case_(self, my_context=None):
-        assert my_context.organization_1.name == 'My Org'
+            def my_custom_context_wrapper(result):
+                # create an object using result
+                my_context = MyResultContext(result)
+                return my_context
+
+            @populate_with('file.yaml', context_name='my_context',
+                           content_wrapper=my_custom_context_wrapper)
+            def test_case_(self, my_context=None):
+                # assert with some expression using my_context object returned
+                # my_custom_context_wrapper
+                assert some_expression
 
 NOTE::
 
@@ -261,6 +270,8 @@ NOTE::
     either a default value ``my_context=None`` or handle in ``**kwargs``
     Otherwise ``py.test`` may try to use this as a fixture placeholder.
 
+    if context_wrapper is set to None, my_context will be the pure unmodified
+    result of populate function.
 
 Credits
 -------

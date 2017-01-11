@@ -85,9 +85,9 @@ forcing a populate or validate operation to be performed.
         context_wrapper argument::
 
             def my_custom_context_wrapper(result):
-            # create an object using result
-            my_context = MyResultContext(result)
-            return my_context
+                # create an object using result
+                my_context = MyResultContext(result)
+                return my_context
 
             @populate_with('file.yaml', context_name='my_context',
                            content_wrapper=my_custom_context_wrapper)
@@ -95,11 +95,6 @@ forcing a populate or validate operation to be performed.
                 # assert with some expression using my_context object returned
                 # my_custom_context_wrapper
                 assert some_expression
-
-NOTE::
-
-    if context_wrapper is set to None, my_context will be the pure unmodified
-    result of populate function.
 
 And if you don't want to have YAML file you can provide a dict::
 
@@ -145,6 +140,9 @@ NOTE::
     using either a default value ``my_context=None`` or handle in
     ``**kwargs`` Otherwise ``py.test`` may try to use this as a fixture
      placeholder.
+
+    if context_wrapper is set to None, my_context will be the pure unmodified
+    result of populate function.
 
 Decorating UnitTest setUp and test_cases::
 
