@@ -24,7 +24,8 @@ RAW_SEARCH_RULES = {
         },
         # remove fields from search
         'password': {'remove': True},
-        'default_organization': {'remove': True}
+        'default_organization': {'remove': True},
+        'admin': {'remove': True},
     },
     'repository': {
         'url': {'remove': True},

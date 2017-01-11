@@ -195,9 +195,10 @@ actions:
          from_search:
            model: Organization
            data:
-             name: Orgcompany5
+             name: Orgcompany7
 
-       fake_repo: "{{ yumrepo }}"
+       fake_repo:
+         from_object: nailgun.entities._FAKE_YUM_REPO
 
        random: "{{ fauxfactory.gen_string('alpha') }}"
 
