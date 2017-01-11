@@ -386,10 +386,10 @@ class BasePopulator(object):
             return getattr(fauxfactory, method_name(action_data))()
         elif isinstance(action_data, dict):
             # only one key is allowed
-            if len(action_data.keys()) > 1:
+            if len(list(action_data.keys())) > 1:
                 raise TypeError("from_factory allows only one method name")
-            key = action_data.keys()[0]
-            value = action_data.values()[0]
+            key = list(action_data.keys())[0]
+            value = list(action_data.values())[0]
             method = getattr(fauxfactory, method_name(key))
 
             if isinstance(value, dict):
@@ -416,13 +416,13 @@ class BasePopulator(object):
                 if isinstance(value, string_types):
                     result = getattr(result, value)
                 elif isinstance(value, dict):
-                    if len(value.keys()) == 1 and isinstance(
-                        value.values()[0], dict
+                    if len(list(value.keys())) == 1 and isinstance(
+                        list(value.values())[0], dict
                     ):
                         # call named function
                         result = getattr(
-                            result, value.keys()[0]
-                        )(**value.values()[0])
+                            result, list(value.keys())[0]
+                        )(**list(value.values())[0])
                     else:
                         # call directly
                         result = result(**value)

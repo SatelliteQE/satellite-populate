@@ -8,34 +8,54 @@ test_satellite_populate
 Tests for `satellite_populate` module.
 """
 
-import pytest
-
-from contextlib import contextmanager
 from click.testing import CliRunner
+from satellite_populate import commands
 
-from satellite_populate import satellite_populate
-from satellite_populate import cli
-
-
-@pytest.fixture
-def response():
-    """Sample pytest fixture.
-    See more at: http://doc.pytest.org/en/latest/fixture.html
-    """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+runner = CliRunner()
 
 
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument.
-    """
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
-def test_command_line_interface():
-    runner = CliRunner()
-    result = runner.invoke(cli.main)
-    assert result.exit_code == 0
-    assert 'satellite_populate.cli.main' in result.output
-    help_result = runner.invoke(cli.main, ['--help'])
+def test_invoked_with_no_datafile():
+    result = runner.invoke(commands.main)
+    assert result.exit_code == 2
+    assert 'Missing argument "datafile"' in result.output
+
+
+def test_help_output():
+    help_result = runner.invoke(commands.main, ['--help'])
     assert help_result.exit_code == 0
-    assert '--help  Show this message and exit.' in help_result.output
+    assert 'https://satellite-populate.readthedocs.io' in help_result.output
+
+
+def test_raises_with_invalid_path():
+    result = runner.invoke(commands.main, ['/foo/baz/zaz.yaml'])
+    assert result.exit_code == -1
+
+
+def test_raises_with_invalid_extension():
+    result = runner.invoke(commands.main, ['/foo/baz/zaz.txt'])
+    assert result.exit_code == -1
+
+
+def test_validate_raise_validation_exit_status():
+    yaml = (
+        "actions: ["
+        "{'action': 'assertion', 'operator': 'eq', 'data': [1, 2]}"
+        "]"
+    )
+    mode = '--mode=validate'
+    result = runner.invoke(commands.main, [yaml, mode])
+    assert result.exit_code == 1
+    assert 'System entities did not validated!' in result.output
+    assert '1 is NOT eq to 2' in result.output
+
+
+def test_populate_do_not_raise_validation_exit_status():
+    yaml = (
+        "actions: ["
+        "{'action': 'assertion', 'operator': 'eq', 'data': [1, 2]}"
+        "]"
+    )
+    result = runner.invoke(commands.main, [yaml])
+    assert result.exit_code == 0
+    assert 'System entities did not validated!' not in result.output
+    assert '1 is NOT eq to 2' in result.output

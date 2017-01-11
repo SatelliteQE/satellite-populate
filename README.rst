@@ -13,8 +13,8 @@ Satellite-Populate
         :target: https://satellite-populate.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://pyup.io/repos/github/SatelliteQE/satellite-populate/shield.svg
-     :target: https://pyup.io/repos/github/SatelliteQE/satellite-populate/
+.. image:: https://pyup.io/repos/github/satelliteqe/satellite-populate/shield.svg
+     :target: https://pyup.io/repos/github/satelliteqe/satellite-populate/
      :alt: Updates
 
 
