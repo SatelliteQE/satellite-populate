@@ -92,7 +92,7 @@ class APIPopulator(BasePopulator):
             entity_id = search_result.id
 
         entity = model(id=entity_id, **rendered_action_data)
-        entity.update(rendered_action_data.keys())
+        entity.update(list(rendered_action_data.keys()))
         self.logger.info("update: %s %s", model, entity_id)
         return entity
 

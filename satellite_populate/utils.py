@@ -13,7 +13,7 @@ try:
 except ImportError:
     coloredlogs = None
 
-DICT_RESERVED_KEYS = vars(dict).keys()
+DICT_RESERVED_KEYS = list(vars(dict).keys())
 
 
 class SmartDict(dict):
@@ -57,7 +57,7 @@ class SmartDict(dict):
 def set_logger(verbose):
     """Set logger verbosity used when client is called with -vvvvv"""
 
-    for _logger in logging.Logger.manager.loggerDict.values():  # noqa
+    for _logger in list(logging.Logger.manager.loggerDict.values()):  # noqa
         if not isinstance(_logger, logging.Logger):
             continue
         if coloredlogs is not None:
