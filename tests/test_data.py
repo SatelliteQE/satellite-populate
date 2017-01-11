@@ -37,19 +37,19 @@
 # """
 #
 #
-# @populate_with(data_in_dict, context=True, verbose=1)
+# @populate_with(data_in_dict, context_name='context', verbose=1)
 # def test_org_1(context=None):
 #     """a test with populated data"""
 #     assert context.organization_1.name == "My Organization 1"
 #
 #
-# @populate_with(data_in_dict, context=True, verbose=1)
+# @populate_with(data_in_dict, context_name='context', verbose=1)
 # def test_org_2(context=None):
 #     """a test with populated data"""
 #     assert context.organization_2.label == "my_organization_2"
 #
 #
-# @populate_with(data_in_string, context=True, verbose=1)
+# @populate_with(data_in_string, context_name='context', verbose=1)
 # def test_org_3(**kwargs):
 #     """a test with populated data"""
 #     context = kwargs['context']
@@ -61,7 +61,7 @@
 #     """
 #     THis test populates data in setUp and also in individual tests
 #     """
-#     @populate_with(data_in_string, context=True)
+#     @populate_with(data_in_string, context_name='context')
 #     def setUp(self, context=None):
 #         self.context = context
 #
@@ -70,7 +70,7 @@
 #             self.context.organization_3.name, "My Organization 3"
 #         )
 #
-#     @populate_with(data_in_dict, context='test_context')
+#     @populate_with(data_in_dict, context_name='test_context')
 #     def test_with_isolated_data(self, test_context=None):
 #         self.assertEqual(
 #             test_context.organization_1.name, "My Organization 1"

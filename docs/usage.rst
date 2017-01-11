@@ -77,18 +77,31 @@ forcing a populate or validate operation to be performed.
 
     And getting the populated entities inside the test_case::
 
-        @populate_with('file.yaml', context=True)
-        def test_case_(self, context=None):
-            assert context.organization_1.name == 'My Org'
-
-    You can also set a name to the context argument::
-
-        @populate_with('file.yaml', context='my_context')
+        @populate_with('file.yaml', context_name='my_context')
         def test_case_(self, my_context=None):
             assert my_context.organization_1.name == 'My Org'
 
+        You can also set a customized context wrapper to the
+        context_wrapper argument::
 
-And if you dont want to have YAML file you can provide a dict::
+            def my_custom_context_wrapper(result):
+            # create an object using result
+            my_context = MyResultContext(result)
+            return my_context
+
+            @populate_with('file.yaml', context_name='my_context',
+                           content_wrapper=my_custom_context_wrapper)
+            def test_case_(self, my_context=None):
+                # assert with some expression using my_context object returned
+                # my_custom_context_wrapper
+                assert some_expression
+
+NOTE::
+
+    if context_wrapper is set to None, my_context will be the pure unmodified
+    result of populate function.
+
+And if you don't want to have YAML file you can provide a dict::
 
     data_in_dict = {
         'actions': [
@@ -104,13 +117,12 @@ And if you dont want to have YAML file you can provide a dict::
     }
 
 
-    @populate_with(data_in_dict, context=True, verbose=1)
-    def test_org_1(context=None):
+    @populate_with(data_in_dict, context_name='my_context', verbose=1)
+    def test_org_1(my_context=None):
         """a test with populated data"""
-        assert context.organization_1.name == "MyOrganization1"
+        assert my_context.organization_1.name == "MyOrganization1"
 
 And finally it also accepts bare YAML string for testing purposes::
-
 
     data_in_string = """
     actions:
@@ -121,7 +133,7 @@ And finally it also accepts bare YAML string for testing purposes::
         label: my_organization_3
     """
 
-    @populate_with(data_in_string, context=True, verbose=1)
+    @populate_with(data_in_string, context_name='context', verbose=1)
     def test_org_3(context=None):
         """a test with populated data"""
         assert context.organization_3.name == "My Organization 3"
@@ -129,10 +141,10 @@ And finally it also accepts bare YAML string for testing purposes::
 
 NOTE::
 
-    That is important that ``context`` argument always be declared using
-    either a default value ``my_context=None`` or handle in ``**kwargs``
-    Otherwise ``py.test`` may try to use this as a fixture placeholder.
-
+    That is important that ``context_name`` argument always be declared
+    using either a default value ``my_context=None`` or handle in
+    ``**kwargs`` Otherwise ``py.test`` may try to use this as a fixture
+     placeholder.
 
 Decorating UnitTest setUp and test_cases::
 
@@ -140,7 +152,7 @@ Decorating UnitTest setUp and test_cases::
         """
         This test populates data in setUp and also in individual tests
         """
-        @populate_with(data_in_string, context=True)
+        @populate_with(data_in_string, context_name='context')
         def setUp(self, context=None):
             self.context = context
 
@@ -149,7 +161,7 @@ Decorating UnitTest setUp and test_cases::
                 self.context.organization_3.name, "My Organization 3"
             )
 
-        @populate_with(data_in_dict, context='test_context')
+        @populate_with(data_in_dict, context_name='test_context')
         def test_with_isolated_data(self, test_context=None):
             self.assertEqual(
                 test_context.organization_1.name, "My Organization 1"

@@ -65,7 +65,7 @@ def populate(data, **kwargs):
     return populator
 
 
-def wrap_context(result):
+def default_context_wrapper(result):
     """Takes the result of populator and keeps only useful data
     e.g. in decorators context.registered_name, context.config.verbose and
     context.vars.admin_username will all be available.
