@@ -28,13 +28,6 @@ def populate_with(data, context_name=None,
         def test_case_(self, my_context=None):
             assert my_context.organization_1.name == 'My Org'
 
-    NOTE::
-
-        That is important that ``context_name`` argument always be declared
-        using either a default value ``my_context=None`` or handle in
-        ``**kwargs`` Otherwise ``py.test`` may try to use this as a fixture
-         placeholder.
-
     You can also set a customized context wrapper to the
     context_wrapper argument::
 
@@ -51,6 +44,11 @@ def populate_with(data, context_name=None,
             assert some_expression
 
     NOTE::
+
+        That is important that ``context_name`` argument always be declared
+        using either a default value ``my_context=None`` or handle in
+        ``**kwargs`` Otherwise ``py.test`` may try to use this as a fixture
+         placeholder.
 
         if context_wrapper is set to None, my_context will be the pure
         unmodified result of populate function.
