@@ -62,9 +62,49 @@ actions:
 """
 
 
+class CustomizedResultContext(object):
+    """a simple customized result context wrapper object"""
+
+    def __init__(self, result):
+        self.__result = result
+
+    @classmethod
+    def wrapper(cls, result):
+        return cls(result)
+
+    @property
+    def result(self):
+        return self.__result
+
+    @property
+    def registry(self):
+        return self.result.registry
+
+    @property
+    def vars(self):
+        return self.result.vars
+
+    @property
+    def config(self):
+        return self.result.config
+
+    def __getattr__(self, name):
+        return getattr(self.result.registry, name)
+
+
 @populate_with(data_in_dict, context_name='context', verbose=1)
 def test_data_in_dict(context=None):
     """a test with populated data"""
+    assert context.project == "Satellite"
+
+
+@populate_with(data_in_dict, context_name='context',
+               context_wrapper=CustomizedResultContext.wrapper,
+               verbose=0)
+def test_data_in_dict_and_customized_wrapper(context=None):
+    """a test with populated data and customized wrapper"""
+    assert isinstance(context, CustomizedResultContext)
+    assert context.project == context.registry.project
     assert context.project == "Satellite"
 
 
