@@ -1,9 +1,16 @@
 # Create 2 Organizations and 2 admin users having each user the proper
 # default_organization
+# In this example user_list is being used to generate data for User creation
 vars:
   org_names:
     - Dunder Mifflin
     - Wernham Hogg
+
+  user_list:
+    - firstname: Michael
+      lastname: Scott
+    - firstname: David
+      lastname: Brent
 
 actions:
 
@@ -16,27 +23,15 @@ actions:
       description: This is a satellite organization named {{ item }}
 
   - model: User
+    with_items: user_list
     data:
       admin: true
-      firstname: Michael
-      lastname: Scott
-      login: mscott
+      firstname: "{{ item.firstname }}"
+      lastname: "{{ item.lastname }}"
+      login: "{{ '{0}{1}'.format(item.firstname[0], item.lastname) | lower }}"
       password:
         from_factory: alpha
       organization:
         from_registry: default_orgs
       default_organization:
-        from_registry: default_orgs[0]
-
-  - model: User
-    data:
-      admin: true
-      firstname: David
-      lastname: Brent
-      login: dbrent
-      password:
-        from_factory: alpha
-      organization:
-        from_registry: default_orgs
-      default_organization:
-        from_registry: default_orgs[1]
+        from_registry: default_orgs[loop_index]
