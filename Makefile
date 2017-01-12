@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
+.PHONY: clean clean-test clean-pyc clean-build docs help bump
 .DEFAULT_GOAL := help
 define BROWSER_PYSCRIPT
 import os, webbrowser, sys
@@ -52,14 +52,14 @@ lint: ## check style with flake8
 
 test: ## run tests quickly with the default Python
 	py.test
-	
+
 
 test-all: ## run tests on every Python version with tox
 	tox
 
 coverage: ## check code coverage quickly with the default Python
 	coverage run --source satellite_populate -m pytest
-	
+
 		coverage report -m
 		coverage html
 		$(BROWSER) htmlcov/index.html
@@ -86,3 +86,6 @@ dist: clean ## builds source and wheel package
 
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
+
+bump: test
+	bumpversion patch --config-file=setup.cfg
