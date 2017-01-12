@@ -2,7 +2,7 @@
 deploy:
   true:
     condition: $TOXENV == py27
-    repo: SatelliteQE/satellite_populate
+    repo: SatelliteQE/satellite-populate
     tags: true
   distributions: sdist bdist_wheel
   password:
