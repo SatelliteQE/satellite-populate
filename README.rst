@@ -41,6 +41,7 @@ For development::
     # fork https://github.com/SatelliteQE/satellite-populate/ to YOUR_GITHUB
     # clone your repo locally
     git clone git@github.com:YOUR_GITHUB/satellite-populate.git
+    cd satellite-populate
 
     # add upstream remote
     git remote add upstream git@github.com:SatelliteQE/satellite-populate.git
@@ -50,7 +51,7 @@ For development::
     workon satellite-populate
 
     # install for development (editable)
-    python setup.py develop
+    pip install -r requirements.txt
 
 Features
 --------
@@ -269,6 +270,66 @@ NOTE::
 
     if context_wrapper is set to None, my_context will be the pure unmodified
     result of populate function.
+
+
+Satellite versions
+------------------
+
+This code is by default prepared to run against Satellite **latest** version
+which means the use of the **latest** master from **nailgun** repository.
+
+If you need to run this tool in older versions e.g: to tun upgrade tests, you
+have to setup **nailgun** version.
+
+You have 2 options:
+
+Manually
+++++++++
+
+before installing satellite-populate install specific nailgun version as
+the following list.
+
+- Satellite 6.1.x::
+
+    pip install -e git+https://github.com/SatelliteQE/nailgun.git@0.28.0#egg=nailgun
+    pip install satellite-populate
+
+- Satellite 6.2.x::
+
+    pip install -e git+https://github.com/SatelliteQE/nailgun.git@6.2.z#egg=nailgun
+    pip install satellite-populate
+
+- Satellite 6.3.x (latest)::
+
+    pip install -e git+https://github.com/SatelliteQE/nailgun.git#egg=nailgun
+    pip install satellite-populate
+
+
+
+Docker
+++++++
+
+
+If you need to run ``satellite-populate`` in older Satellite versions you can
+use the ``docker images`` so it will manage the correct nailgun version to
+be used with that specific system version.
+
+First pull image from Docker Hub::
+
+    docker pull SatelliteQE/satellite-populate:latest
+
+Change ``:latest`` to specific tag. e.g:  ``:6.1`` or ``:6.2``
+
+
+Test it::
+
+    docker run SatelliteQE/satellite-populate --test
+
+Then run::
+
+    docker run -v $PWD:/datafiles SatelliteQE/satellite-populate /datafiles/theoffice.yaml -v -h server.com
+
+You must map your local folder containing datafiles
 
 Credits
 -------

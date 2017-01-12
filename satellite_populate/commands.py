@@ -27,11 +27,12 @@ import sys
 
 import click
 
+from satellite_populate.constants import TEST_DATA
 from satellite_populate.main import populate
 
 
 def execute_populate(datafile, verbose, output, mode, scheme, port, hostname,
-                     username, password):
+                     username, password, report=True, enable_output=True):
     """Populate using the data described in `datafile`:"""
     result = populate(
         datafile,
@@ -42,8 +43,12 @@ def execute_populate(datafile, verbose, output, mode, scheme, port, hostname,
         port=port,
         hostname=hostname,
         username=username,
-        password=password
+        password=password,
+        enable_output=enable_output
     )
+
+    if not report:
+        return
 
     result.logger.info(
         "{0} entities already existing in the system".format(
@@ -92,7 +97,7 @@ envvar:POPULATE_VERBOSE
 @click.command()
 @click.argument(
     'datafile',
-    required=True,
+    required=False,
     type=click.Path(),
     envvar='POPULATE_DATAFILE'
 )
@@ -129,16 +134,31 @@ envvar:POPULATE_VERBOSE
               help="""envvar:POPULATE_USERNAME\nAdmin user""")
 @click.option('-p', '--password', default=None, envvar='POPULATE_PASSWORD',
               help="""envvar:POPULATE_PASSWORD\nAdmin Password""")
+@click.option('-t', '--test', default=False, help="Run a simple test",
+              is_flag=True)
+@click.option('-r', '--report/--no-report', default=True, is_flag=True,
+              help="Show execution report?")
+@click.option('--enable-output/--no-output', default=True, is_flag=True,
+              help="Should write validation file?")
 def main(datafile, verbose, output, mode, scheme, port, hostname, username,
-         password):
+         password, test, report, enable_output):
     """Populates or validates Satellite entities. Full documentation can be
     found on: https://satellite-populate.readthedocs.io\n
         $ satellite-populate test_data.yaml -vv\n
         $ satellite-populate test_data.yaml -vv --mode=validate\n
         $ satellite-populate test_data.yaml -vv -h myserver.com
     """
+
+    if test:
+        datafile = TEST_DATA
+        verbose = 1
+        report = False
+
+    if not datafile:
+        main(['--help'])
+
     execute_populate(datafile, verbose, output, mode, scheme, port,
-                     hostname, username, password)
+                     hostname, username, password, report, enable_output)
 
 
 if __name__ == "__main__":

@@ -61,7 +61,7 @@ def populate_with(data, context_name=None,
         @wraps(func)
         def wrapper(*args, **kwargs):
             """decorator wrapper"""
-            if not 'verbose' in extra_options:
+            if 'verbose' not in extra_options:
                 # set default verbose to -v so we get all messages in test log
                 extra_options['verbose'] = 1
             result = populate(data, **extra_options)

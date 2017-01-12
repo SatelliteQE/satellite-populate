@@ -15,7 +15,7 @@ class APIPopulator(BasePopulator):
         """Add to validation errors and outputs error"""
         error_message = "%s: %s %s" % (
             self.mode, str(e) if e else '', action_data)
-        if e and hasattr(e, 'response'):
+        if e and hasattr(e, 'response') and e.response is not None:
             error_message += str(e.response.content)
         self.logger.error(error_message)
         self.validation_errors.append({
