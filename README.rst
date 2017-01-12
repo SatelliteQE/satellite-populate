@@ -59,48 +59,45 @@ YAML based actions
 ++++++++++++++++++
 
 Data population definition goes to YAML file e.g ``office.yaml`` in the following
-example we are going to create 2 organizations and 2 admin users::
+example we are going to create 2 organizations and 2 admin users using lists::
+
 
     vars:
+
       org_names:
         - Dunder Mifflin
         - Wernham Hogg
 
+      user_list:
+        - firstname: Michael
+          lastname: Scott
+
+        - firstname: David
+          lastname: Brent
+
     actions:
 
       - model: Organization
+        with_items: org_names
         register: default_orgs
         data:
           name: "{{ item }}"
-          label: org{{ item|replace(' ', '') }}
+          label: org{{ item.replace(' ', '') }}
           description: This is a satellite organization named {{ item }}
-        with_items: org_names
 
       - model: User
+        with_items: user_list
         data:
           admin: true
-          firstname: Michael
-          lastname: Scott
-          login: mscott
+          firstname: "{{ item.firstname }}"
+          lastname: "{{ item.lastname }}"
+          login: "{{ '{0}{1}'.format(item.firstname[0], item.lastname) | lower }}"
           password:
             from_factory: alpha
           organization:
             from_registry: default_orgs
           default_organization:
-            from_registry: default_orgs[0]
-
-      - model: User
-        data:
-          admin: true
-          firstname: David
-          lastname: Brent
-          login: dbrent
-          password:
-            from_factory: alpha
-          organization:
-            from_registry: default_orgs
-          default_organization:
-            from_registry: default_orgs[1]
+            from_registry: default_orgs[loop_index]
 
 
 On the populate file you can define CRUD actions such as **create**, **delete**, **update**
