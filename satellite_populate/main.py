@@ -4,6 +4,7 @@ import json
 from collections import OrderedDict
 from pprint import pformat
 
+import fauxfactory
 import import_string
 import os
 import yaml
@@ -60,8 +61,15 @@ def populate(data, **kwargs):
     populator = get_populator(data, **kwargs)
     populator.execute()
     populator.logger.info("%s finished!", populator.mode)
-    if kwargs.get('output'):
-        save_rendered_data(populator, kwargs['output'])
+
+    if populator.mode == 'populate' and populator.config.get('enable_output'):
+        save_rendered_data(
+            populator,
+            kwargs.get(
+                'output'
+            ) or "{0}.yaml".format(fauxfactory.gen_string('alpha'))
+        )
+
     return populator
 
 
@@ -98,7 +106,7 @@ def save_rendered_data(result, filepath):
 
     directory, filename = os.path.split(filepath)
 
-    if not directory:
+    if not directory and data.get('input_filename'):
         directory = os.path.dirname(result.input_filename)
 
     if not filename.startswith('validation'):

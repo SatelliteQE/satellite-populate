@@ -14,10 +14,10 @@ from satellite_populate import commands
 runner = CliRunner()
 
 
-def test_invoked_with_no_datafile():
-    result = runner.invoke(commands.main)
-    assert result.exit_code == 2
-    assert 'Missing argument "datafile"' in result.output
+def test_invoked_with_no_datafile_shows_help():
+    result = runner.invoke(commands.main, ['--no-output'])
+    assert result.exit_code == 0
+    assert 'https://satellite-populate.readthedocs.io' in result.output
 
 
 def test_help_output():
@@ -43,7 +43,7 @@ def test_validate_raise_validation_exit_status():
         "]"
     )
     mode = '--mode=validate'
-    result = runner.invoke(commands.main, [yaml, mode])
+    result = runner.invoke(commands.main, [yaml, mode, '--no-output'])
     assert result.exit_code == 1
     assert 'System entities did not validated!' in result.output
     assert '1 is NOT eq to 2' in result.output
@@ -55,7 +55,7 @@ def test_populate_do_not_raise_validation_exit_status():
         "{'action': 'assertion', 'operator': 'eq', 'data': [1, 2]}"
         "]"
     )
-    result = runner.invoke(commands.main, [yaml])
+    result = runner.invoke(commands.main, [yaml, '--no-output'])
     assert result.exit_code == 0
     assert 'System entities did not validated!' not in result.output
     assert '1 is NOT eq to 2' in result.output

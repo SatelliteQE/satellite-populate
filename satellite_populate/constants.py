@@ -45,3 +45,31 @@ DEFAULT_CONFIG = SmartDict({
     'hostname': None,
     'output': 'validate_data.yaml'
 })
+
+TEST_DATA = """
+actions:
+  - action: echo
+    log: Hello, if you can see this it means that I am working!!!
+  - action: register
+    data:
+      you: "{{ env.USER }}"
+      path: "{{ env.PWD }}"
+  - action: echo
+    when: you is not None
+    log: And your username is {{ you }}
+  - action: echo
+    when: path is not None
+    log: And I am running from {{ path }}
+  - action: create
+    model: Organization
+    data:
+      name: testing
+    silent_errors: true
+  - action: echo
+    level: DEBUG
+    log: >
+       And you should see above an error message saying that
+       no host has been supplied, thats ok! this test should error
+       if you can see error message and HTTP debug message it means
+       that it is working well!!!
+"""
