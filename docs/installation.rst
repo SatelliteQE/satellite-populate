@@ -12,9 +12,9 @@ To install satellite-populate, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install satellite_populate
+    $ pip install satellite-populate
 
-This is the preferred method to install satellite-populate, as it will always install the most recent stable release. 
+This is the preferred method to install satellite-populate, as it will always install the most recent stable release.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
@@ -26,26 +26,34 @@ you through the process.
 From sources
 ------------
 
-The sources for satellite-populate can be downloaded from the `Github repo`_.
+To install from github master branch `tarball`_::
 
-You can either clone the public repository:
+    pip install https://github.com/SatelliteQE/satellite-populate/tarball/master
 
-.. code-block:: console
+For development from the `Github repo`_.::
 
-    $ git clone git://github.com/SatelliteQE/satellite_populate
+    # fork https://github.com/SatelliteQE/satellite-populate/ to YOUR_GITHUB
+    # clone your repo locally
+    git clone git@github.com:YOUR_GITHUB/satellite-populate.git
+    cd satellite-populate
 
-Or download the `tarball`_:
+    # add upstream remote
+    git remote add upstream git@github.com:SatelliteQE/satellite-populate.git
 
-.. code-block:: console
+    # create a virtualenv
+    mkvirtualenv satellite-populate
+    workon satellite-populate
 
-    $ curl  -OL https://github.com/SatelliteQE/satellite_populate/tarball/master
-
-Once you have a copy of the source, you can install it with:
-
-.. code-block:: console
-
-    $ python setup.py install
+    # install for development (editable)
+    pip install -r requirements.txt
 
 
-.. _Github repo: https://github.com/SatelliteQE/satellite_populate
-.. _tarball: https://github.com/SatelliteQE/satellite_populate/tarball/master
+Testing if installation is good::
+
+     $ satellite-populate --test
+     satellite_populate.base - INFO - ECHO: Hello, if you can see this it means that I am working!!!
+
+
+
+.. _Github repo: https://github.com/SatelliteQE/satellite-populate
+.. _tarball: https://github.com/SatelliteQE/satellite-populate/tarball/master

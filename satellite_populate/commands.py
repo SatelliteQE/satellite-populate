@@ -6,7 +6,7 @@ and validator.
 Commands included:
 
 satellite-populate
---------
+------------------
 
 A command to populate the system based in an YAML file describing the
 entities::

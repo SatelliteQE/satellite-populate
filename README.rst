@@ -53,6 +53,13 @@ For development::
     # install for development (editable)
     pip install -r requirements.txt
 
+
+Testing if installation is good::
+
+     $ satellite-populate --test
+     satellite_populate.base - INFO - ECHO: Hello, if you can see this it means that I am working!!!
+
+
 Features
 --------
 
@@ -314,20 +321,23 @@ If you need to run ``satellite-populate`` in older Satellite versions you can
 use the ``docker images`` so it will manage the correct nailgun version to
 be used with that specific system version.
 
+https://hub.docker.com/r/satelliteqe/satellite-populate/
+
+
 First pull image from Docker Hub::
 
-    docker pull SatelliteQE/satellite-populate:latest
+    docker pull satelliteqe/satellite-populate:latest
 
 Change ``:latest`` to specific tag. e.g:  ``:6.1`` or ``:6.2``
 
 
 Test it::
 
-    docker run SatelliteQE/satellite-populate --test
+    docker run satelliteqe/satellite-populate --test
 
 Then run::
 
-    docker run -v $PWD:/datafiles SatelliteQE/satellite-populate /datafiles/theoffice.yaml -v -h server.com
+    docker run -v $PWD:/datafiles satelliteqe/satellite-populate /datafiles/theoffice.yaml -v -h server.com
 
 You must map your local folder containing datafiles
 
