@@ -286,29 +286,3 @@ actions:
 #      name: new_prodtest
 #      organization:
 #        from_registry: default_orgs[0]
-
-# TODOC:
-#  - model: Repository
-#    data:
-#      url:
-#        from_object:
-#          name: robottelo.constants.FAKE_REPO_1
-#      thing: "{{ fauxfactory.gen_string() }}"
-#      # Save last generated strings in a file
-#      # for validation.
-
-#      organization:
-#        from_search:
-#          model: Organization
-#          data:
-#            name: Orgcompany7
-#          all: true
-#          silent_errors: true
-
-#      product:
-#        from_search:
-#          model: Product
-#          data:
-#            organization:
-#              from_registry: default_orgs[0]
-#          all: false  # default

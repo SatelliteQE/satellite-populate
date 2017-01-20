@@ -55,6 +55,11 @@ arguments to decorator::
 
   @populate_with(data, username='x', password='y', hostname='server.com')
 
+
+NOTE:
+
+  "validation data can also be included in `config` section"
+
 Decorator
 ---------
 
@@ -134,15 +139,13 @@ And finally it also accepts bare YAML string for testing purposes::
         assert context.organization_3.name == "My Organization 3"
         assert context.organization_3.label == "my_organization_3"
 
-NOTE::
+NOTE:
 
-    That is important that ``context_name`` argument always be declared
-    using either a default value ``my_context=None`` or handle in
-    ``**kwargs`` Otherwise ``py.test`` may try to use this as a fixture
-     placeholder.
-
-    if context_wrapper is set to None, my_context will be the pure unmodified
-    result of populate function.
+  "That is important that ``context_name`` argument always be declared
+  using either a default value ``my_context=None`` or handle in
+  ``**kwargs`` Otherwise ``py.test`` may try to use this as a fixture
+  placeholder. And if context_wrapper is set to None, my_context will be the pure unmodified
+  result of populate function."
 
 Decorating UnitTest setUp and test_cases::
 
@@ -176,16 +179,6 @@ config
 
 The config may be used to define special behavior of populator and its keys are:
 
-- populator
-
-  The name of the populator defined in ``populators``
-- populators
-
-  The specification of populator modules to be loaded
-- verbose
-
-  The verbosity of logging 0, 1 or 2, it can be overwritten with -vvv in commands.
-
 example:
 
 .. code-block:: console
@@ -198,6 +191,82 @@ example:
           module: satellite_populate.api.APIPopulator
         cli:
           module: satellite_populate.cli.CLIPopulator
+
+
+Config variables:
+
+
+.. code-block:: console
+
+    config:
+      # Set verbosity to -v, -vv, -vvv, -vvvv, -vvvvv
+      # int
+      # range(0, 5)
+      verbose: 1
+
+      # define the default active populator name
+      # str
+      populator: foo
+
+      # specify available populators
+      # dict(<name>=dict(module='module_path'))
+      populators:
+        foo:
+          module: mypack.mymodule.MyPopulatorClass
+        other:
+          module: otherpath.OtherClass
+
+      # define the mode (override by argument)
+      # str
+      # choices: validate | populate
+      mode: validate
+
+      # http or https ? (override by argument)
+      schema: http
+
+      # Satellite system port (override by argument)
+      port: 443
+
+      # hostname (without scheme) (override by argument)
+      hostname: server.com
+
+      # Admin username (override by argument)
+      username: admin
+
+      # admin password (override by argument)
+      password: changeme
+
+      # User for ssh login (override by argument)
+      ssh_user: root
+
+      # Ssh auth (override by argument)
+      # if None local ~/.ssh pub key is used
+      # or password
+      # or keyfile
+      ssh_auth:
+        password: 123456
+        key_file: path/to/file.pub
+
+      # raw search rules is a dict of rules
+      # to force some transformations over nailgun
+      # EntitySearchMixin
+      # in the example below we are removing the password
+      # field from search queries for User entity
+      raw_search_rules:
+        user:
+          password:
+            remove: true
+
+      # In some cases a GPGKey is needed for nailgun
+      gpgkey:
+        content: skjfsdhbgbsdhbgsdjbg=
+        docker_url: system.com:dockerport
+
+      # inject following modules to context (import)
+      add_to_context:
+        path: os.path
+        shortname: package.module.module.module.object
+        # the above will available as {{ shortname }}
 
 vars
 ++++
@@ -218,48 +287,440 @@ any action.
         suffix: bbbb
         my_name: me
 
-actions
+Actions
 +++++++
 
 The actions is the most important section of the YAML, it is a list of actions
 being each action a dictionary containing special keys depending on the action type.
 
-The action type is defined in ``action`` key and available actions are:
-
 Actions are executed in the defined order and order is very important because
 each action can ``register`` its result to the internal registry to be referenced
 later in any other action.
 
+The action type is defined in ``action`` key and available actions are:
 
-**CRUD ACTIONS**
+CRUD
+~~~~
 
-Crud actions takes a ``model`` argument, any from ``nailgun.entities`` is valid.
+Crud actions takes a ``model`` argument, any from ``nailgun.entities`` is a valid model,
+models are passed as ``CamelCasedName`` of the antity class, then, depending on
+the populator being used, that CRUD action can be performed by API, CLI or UI.
+
+List of possible variables for crud actions::
 
 
-- create (the default)
+  # action name - create | delete | update
+  action: create
 
-  Creates a new entity if not exists, else gets existing.
-- update
+  # entity class
+  model: User
 
-  Updates entity with provided ``data`` by ``id`` or unique search
-- delete
+  # name to register
+  register: my_user
 
-  deleted entity with ``id`` or unique search
+  # log message to output
+  log: Creating a new user ....
 
-**SPECIAL ACTIONS**
+  # Must iterate a list to repeat the same action?
+  with_items:
+    - item1
+    - item2
+    ...
 
-- echo
+  # The data to perform a search for the entity
+  data:
 
-  Logs and print output to the console
-- register
+    # base types - int, str, list etc..
+    name: Foo bar
 
-  Register a variable in the internal registry
-- unregister
+    # from an available Python object
+    url:
+      from_object: somemodule.constants.REPO_URL
 
-  removes a variable from register
-- assertion
+    # from a search in the system
+    organization:
+      from_search:
+        model: Organization
+        data:
+          name: SomeCompanyName
 
-  perform assertion operations, if any fails returns exit code 1
+    # from specific ID
+    product:
+      from_read:
+        model: Product
+        data:
+          id: 1
+
+    # from registered action
+    user:
+      from_registry: already_existing_user
+
+    # from fauxfactory generator
+    password:
+      from_factory: alphanumeric
+
+  # If needed specify data to be used only for search (in validation)
+  search_query:
+    field: something
+
+  # If needed custom options can be passed to nailgun search
+  search_options:
+    filter: {}
+
+    # should force a raw search or use attribute search?
+    # note: some entities such as Organization will always be raw searched
+    force_raw: true | false
+
+  # Choose which populator to use for this specific action
+  # NotImplementedYet
+  via: api | cli | ui | custom_populator
+
+  # Should errors be silenced and None registered if error?
+  silent_errors: true | false
+
+  # Run async?
+  # NotImplementedYet
+  async: true | false
+  wait: other_action_register_name
+
+  # Run only in the case of following condition
+  # Python allowed, registered objects allowed
+  # should be a Boolean operation
+  when: object_a == object_b and 1 > 0
+
+
+create
+******
+
+Search for the new entity and creates if not found, else only register the object.
+
+- If no action is informed **create** will be always the default
+- In populate perform search then create
+- In validate perform only search
+
+Required variables:
+
+- **model**: Nailgun Entity Class name
+- **data**: a dictionary to search or populate the entity
+
+
+Creating a simple Organization::
+
+    # a list of dictionaries
+    actions:
+
+      - model: Organization  # the nailgun Entity class
+
+        # The message to output in the log
+        log: This is the first organization
+
+        # The name which this object will be registered
+        # to be referenced in other actions.
+        register: my_organization
+
+        # The data to search or populate the entity
+        data:
+          name: My Company
+          label: mycompany
+
+
+Creating 2 organizations and 2 users from lists and referencing objects from the registry::
+
+
+    vars:
+
+      # a list with data for 2 users
+      user_list:
+        - firstname: Michael
+          lastname: Scott
+        - firstname: David
+          lastname: Brent
+
+      # a list of company names
+      company_names:
+        - Dunder Mifflin
+        - Wernham Hogg
+
+    actions:
+
+      # create all the organizations listed above
+      - model: Organization
+
+        # iterate specified list and repeats the action for each
+        with_items: company_names
+
+        # include the result in registry
+        # if `with_items` is used, the registered object will be a list
+        register: companies
+
+        # give the data
+        data:
+          name: "{{item}}"
+          label: "{{item.replace(' ', '')}}"  # transform name in a valid label
+
+      # Create one user as admin for each organization
+      - model: User
+        with_items: user_list
+        data:
+          admin: true
+          # refer to loop iteration using `items` object
+          firstname: "{{item.firstname}}"
+          lastname: "{{item.lastname}}"
+
+          # Use object methods and Jinja filters to transform data
+          # the following gives us mscott and dbrent
+          login: "{{ '{0}{1}'.format(item.firstname[0], item.lastname) | lower }}"
+
+          # generate a random password using builtin fauxfactory
+          password:
+            from_factory: alpha
+
+          # Set the organizations to existing list of orgs
+          organization:
+            from_registry: companies
+
+          # Set as default org the same positioned in the loop
+          default_organization:
+            from_registry: companies[loop_index]
+
+
+update
+******
+
+Get some existing entity and updates it with provided data.
+
+- Executed only in populate mode
+- In validate mode it only searches for updated entity
+
+Required variables:
+
+- **model**: Nailgun Entity Class name
+- **registry** The name registry object
+- **data**: a dictionary to search
+
+
+Updating the product named `old_name` with `new_name`::
+
+    actions:
+       - action: update
+         model: Product
+         register: some_product
+         data:
+           name: new_name
+         search_query:
+           name: old_name
+           organization:
+               from_search:
+                 model: Organization
+                 data:
+                   name: Default Organization
+
+
+If the `some_product` already exists in registry you can omit the search::
+
+    actions:
+       - action: update
+         model: Product
+         register: some_product
+         data:
+           name: new_name
+
+
+delete
+******
+
+Deletes existing entity.
+
+- Executed only in populate mode
+- In validate mode it only searches for updated entity
+
+Required variables:
+
+- **model**: Nailgun Entity Class name
+- **registry** The name registry object
+- **data**: a dictionary to search
+
+
+Deleting the product named `new_name`::
+
+    actions:
+       - action: delete
+         model: Product
+         search_query:
+           name: new_name
+           organization:
+               from_search:
+                 model: Organization
+                 data:
+                   name: Default Organization
+
+
+If the `some_product` already exists in registry you can omit the search::
+
+    actions:
+       - action: delete
+         model: Product
+         register: some_product
+
+
+Note:
+
+  "delete action perform a DELETE call to the api and removes
+  the entity from the system, while unregister action only removes it
+  from runtime registry"
+
+
+OTHER
+~~~~~
+
+This are other built-in actions
+
+echo
+****
+
+Outputs a message to the LOG and also to stdout.
+
+Required variables:
+
+- **log**: The message to be logged
+
+Examples::
+
+    actions:
+       - action: echo
+         log: Hello World
+       - action: echo
+         log: This an error
+         level: error
+       - action echo
+         log: This message goes also to the stdout
+         print: true
+       - action: echo
+         log: I can read variables, you are {{ env.USER }}
+
+Which outputs::
+
+    2017-01-20 00:10:53 - satellite_populate.base - INFO - ECHO: Hello World
+    2017-01-20 00:10:53 - satellite_populate.base - ERROR - ECHO: This an error
+    2017-01-20 00:10:53 - satellite_populate.base - INFO - ECHO: This message goes also to the stdout
+    This message goes also to the stdout
+    2017-01-20 00:10:53 - satellite_populate.base - INFO - ECHO: I can read variables, you are root
+
+
+register
+********
+
+Register variables to the runtime registry
+
+Required variables:
+
+- **data**: A dictionary
+
+Examples::
+
+    - action: register
+      data:
+        name: Michael Scott
+        preferred_organization:
+          from_search:
+            model: Organization
+            data:
+              name: My prefered Organization
+        repo_url:
+          from_object: "http://" + file.constants.REPO_BASE_URL
+
+All variables registered above will be available for the next executed actions.
+
+unregister
+**********
+
+Removes variables from runtime register.
+
+Required variables:
+
+- **data**: A list of variable names
+
+Examples::
+
+    - action: unregister
+      data:
+        - name
+        - preferred_organization
+        - repo_url
+
+All variables unregistered above will be not available for the next executed actions.
+
+Unregister is useful for actions using `when:` conditions.
+
+
+assertion
+*********
+
+Execute predefined assertion operations and fails the validation if assertion
+returns False.
+
+Required variables:
+
+- **operator**: Logical operator mapped to a function returning Boolean
+- **data**: A list of two elements to be tested
+
+Built in operators:
+
+- eq  # the default
+- ne
+- gt
+- lt
+- gte
+- lte
+- identity
+
+Examples::
+
+    - action: assertion
+      log: Check if current user is root
+      operator: eq
+      data:
+        - root
+        - "{{ env.USER }}"
+
+If returns False, the validation ends with exit code 1
+
+Custom Populators can also include custom operators for assertion.
+
+
+CUSTOM
+~~~~~~
+
+And you can also have special actions defined in a custom populator.
+
+Lets say you have this python module in your project, properly available on
+PYTHONPATH::
+
+    from satellite_populate.api import APIPopulator
+
+    class MyPopulator(APIPopulator):
+        def action_writeinfile(self, rendered_data, action_data):
+            with open(rendered_data['path'], 'w') as output:
+                output.write(rendered_data['content'])
+
+Now go to your ``test.yaml`` and write::
+
+    config:
+      populator: mine
+      populators:
+        mine:
+          module: mypath.mymodule.MyPopulator
+
+    actions:
+
+      - action: writeinfile
+        path: /tmp/test.txt
+        content: Hello World!!!
+
+and run:
+
+  $ satellite-populate test.yaml -v
+
 
 Dynamic Data
 ++++++++++++

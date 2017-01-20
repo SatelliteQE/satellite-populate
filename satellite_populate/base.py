@@ -44,8 +44,11 @@ class BasePopulator(object):
 
         self.input_filename = data.get('input_filename')
 
+        # TODO: Accept from_* and Jinja in vars
         self.vars = SmartDict(data.get('vars', {}))
 
+        # TODO: Implement for actions
+        # includes and folder/main.yaml execution
         self.actions = data.get('actions')
         if not self.actions:
             raise ValueError("Your YAML misses actions: directive")

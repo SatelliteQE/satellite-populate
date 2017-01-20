@@ -225,7 +225,7 @@ Now go to your ``test.yaml`` and write::
 
       - action: writeinfile
         path: /tmp/test.txt
-        text: Hello World!!!
+        content: Hello World!!!
 
 and run:
 
