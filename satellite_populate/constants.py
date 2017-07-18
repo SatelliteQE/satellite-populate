@@ -29,7 +29,9 @@ RAW_SEARCH_RULES = {
     },
     'repository': {
         'url': {'remove': True},
-    }
+    },
+    # force Architecture to always perform raw_search
+    'architecture': {'_force_raw': True}
 }
 
 DEFAULT_CONFIG = SmartDict({
