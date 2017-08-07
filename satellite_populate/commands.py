@@ -23,28 +23,52 @@ the populate or a YAML file with mode: validation::
 
 Use :code:`$ satellite-populate --help` for more info
 """
-import sys
-
 import click
+import os
+import sys
+import yaml
 
 from satellite_populate.constants import TEST_DATA
 from satellite_populate.main import populate
 
+CONFIG_FILE = '.satellite_populate.yaml'
+SATELLITE_POPULATE_FILE = 'SATELLITE_POPULATE_FILE'
+
+def _read_populate_settings(config_file):
+    """Parse satellite-populate configuration"""
+    if config_file.endswith(('.yml', '.yaml', 'json')):    
+        with open(config_file) as file:
+            settings = yaml.load(file)
+            if type(settings) == dict:
+                return settings
+    return {}
+
+def configure():
+    """Read satellite-populate settings file."""
+    config = os.path.join(os.environ[SATELLITE_POPULATE_FILE],CONFIG_FILE) \
+        if SATELLITE_POPULATE_FILE in os.environ.keys() \
+        else os.path.join(os.environ['HOME'], CONFIG_FILE)
+
+    if not os.path.isfile(config):
+        return {}
+    return _read_populate_settings(config)
 
 def execute_populate(datafile, verbose, output, mode, scheme, port, hostname,
                      username, password, report=True, enable_output=True):
     """Populate using the data described in `datafile`:"""
+    settings = configure()
+    
     result = populate(
         datafile,
-        verbose=verbose,
-        output=output,
-        mode=mode,
-        scheme=scheme,
-        port=port,
-        hostname=hostname,
-        username=username,
-        password=password,
-        enable_output=enable_output
+        verbose=settings.get('verbose',verbose),
+        output=settings.get('output',output),
+        mode=settings.get('mode', mode),
+        scheme=settings.get('scheme', scheme),
+        port=settings.get('port', port),
+        hostname=settings.get('hostname', hostname),
+        username=settings.get('username', username),
+        password=settings.get('password', password),
+        enable_output=settings.get('enable_output', enable_output)
     )
 
     if not report:
@@ -92,7 +116,6 @@ envvar:POPULATE_VERBOSE
 -vvvv(4):ERROR
 -vvvvv(5):CRITICAL
 """
-
 
 @click.command()
 @click.argument(
