@@ -38,8 +38,8 @@ SATELLITE_POPULATE_FILE = 'SATELLITE_POPULATE_FILE'
 def _read_populate_settings(config_file):
     """Parse satellite-populate configuration"""
     if config_file.endswith(('.yml', '.yaml', 'json')):
-        with open(config_file) as file:
-            settings = yaml.load(file)
+        with open(config_file) as config:
+            settings = yaml.load(config)
             if type(settings) == dict:
                 return settings
     return {}
@@ -47,9 +47,10 @@ def _read_populate_settings(config_file):
 
 def configure():
     """Read satellite-populate settings file."""
-    config = os.path.join(os.environ[SATELLITE_POPULATE_FILE], CONFIG_FILE) \
-        if SATELLITE_POPULATE_FILE in os.environ.keys() \
-        else os.path.join(os.environ['HOME'], CONFIG_FILE)
+    if SATELLITE_POPULATE_FILE in os.environ.keys():
+        config = os.path.join(os.environ[SATELLITE_POPULATE_FILE], CONFIG_FILE)
+    else:
+        config = os.path.join(os.environ['HOME'], CONFIG_FILE)
 
     if not os.path.isfile(config):
         return {}
