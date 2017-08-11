@@ -47,12 +47,11 @@ def _read_populate_settings(config_file):
 
 def configure():
     """Read satellite-populate settings file."""
-    if SATELLITE_POPULATE_FILE in os.environ.keys():
+    if os.path.isfile(os.path.join(os.environ['HOME'], CONFIG_FILE)):
+        config = os.path.join(os.environ['HOME'], CONFIG_FILE)
+    elif SATELLITE_POPULATE_FILE in os.environ.keys():
         config = os.path.join(os.environ[SATELLITE_POPULATE_FILE], CONFIG_FILE)
     else:
-        config = os.path.join(os.environ['HOME'], CONFIG_FILE)
-
-    if not os.path.isfile(config):
         return {}
     return _read_populate_settings(config)
 
@@ -64,15 +63,15 @@ def execute_populate(datafile, verbose, output, mode, scheme, port, hostname,
 
     result = populate(
         datafile,
-        verbose=settings.get('verbose', verbose),
-        output=settings.get('output', output),
-        mode=settings.get('mode', mode),
-        scheme=settings.get('scheme', scheme),
-        port=settings.get('port', port),
-        hostname=settings.get('hostname', hostname),
-        username=settings.get('username', username),
-        password=settings.get('password', password),
-        enable_output=settings.get('enable_output', enable_output)
+        verbose=verbose or settings.get('verbose'),
+        output=output or settings.get('output'),
+        mode=mode or settings.get('mode'),
+        scheme=scheme or settings.get('scheme'),
+        port=port or settings.get('port'),
+        hostname=hostname or settings.get('hostname'),
+        username=username or settings.get('username'),
+        password=password or settings.get('password'),
+        enable_output=enable_output or settings.get('enable_output')
     )
 
     if not report:
@@ -162,12 +161,12 @@ envvar:POPULATE_VERBOSE
               help="""envvar:POPULATE_USERNAME\nAdmin user""")
 @click.option('-p', '--password', default=None, envvar='POPULATE_PASSWORD',
               help="""envvar:POPULATE_PASSWORD\nAdmin Password""")
-@click.option('-t', '--test', default=False, help="Run a simple test",
-              is_flag=True)
+@click.option('-t', '--test', default=False, envvar='POPULATE_TEST', 
+              help="""envvar:POPULATE_TEST\nRun a simple test""", is_flag=True)
 @click.option('-r', '--report/--no-report', default=True, is_flag=True,
-              help="Show execution report?")
+              envvar='POPULATE_REPORT', help="""envvar:POPULATE_REPORT\nShow execution report?""")
 @click.option('--enable-output/--no-output', default=True, is_flag=True,
-              help="Should write validation file?")
+              envvar='POPULATE_OUTPUT', help="""envvar:POPULATE_OUTPUT\nShould write validation file?""")
 def main(datafile, verbose, output, mode, scheme, port, hostname, username,
          password, test, report, enable_output):
     """Populates or validates Satellite entities. Full documentation can be
