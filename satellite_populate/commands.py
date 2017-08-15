@@ -50,7 +50,7 @@ def configure():
     if os.path.isfile(os.path.join(os.environ['HOME'], CONFIG_FILE)):
         config = os.path.join(os.environ['HOME'], CONFIG_FILE)
     elif SATELLITE_POPULATE_FILE in os.environ.keys():
-        config = os.path.join(os.environ[SATELLITE_POPULATE_FILE], CONFIG_FILE)
+        config = os.environ[SATELLITE_POPULATE_FILE]
     else:
         return {}
     return _read_populate_settings(config)
@@ -161,12 +161,14 @@ envvar:POPULATE_VERBOSE
               help="""envvar:POPULATE_USERNAME\nAdmin user""")
 @click.option('-p', '--password', default=None, envvar='POPULATE_PASSWORD',
               help="""envvar:POPULATE_PASSWORD\nAdmin Password""")
-@click.option('-t', '--test', default=False, envvar='POPULATE_TEST', 
+@click.option('-t', '--test', default=False, envvar='POPULATE_TEST',
               help="""envvar:POPULATE_TEST\nRun a simple test""", is_flag=True)
 @click.option('-r', '--report/--no-report', default=True, is_flag=True,
-              envvar='POPULATE_REPORT', help="""envvar:POPULATE_REPORT\nShow execution report?""")
+              envvar='POPULATE_REPORT',
+              help="""envvar:POPULATE_REPORT\nShow execution report?""")
 @click.option('--enable-output/--no-output', default=True, is_flag=True,
-              envvar='POPULATE_OUTPUT', help="""envvar:POPULATE_OUTPUT\nShould write validation file?""")
+              envvar='POPULATE_OUTPUT',
+              help="""envvar:POPULATE_OUTPUT\nShould write validation file?""")
 def main(datafile, verbose, output, mode, scheme, port, hostname, username,
          password, test, report, enable_output):
     """Populates or validates Satellite entities. Full documentation can be
