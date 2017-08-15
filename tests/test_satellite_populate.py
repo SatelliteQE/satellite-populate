@@ -81,7 +81,7 @@ def test_config_no_file(monkeypatch):
 def test_config_file(monkeypatch):
     _config_setup(monkeypatch)
     config_file = os.path.join(os.environ['HOME'], commands.CONFIG_FILE)
-    with tempfile.NamedTemporaryFile(dir=_test_dir) as temp:
+    with tempfile.NamedTemporaryFile(mode='w', dir=_test_dir) as temp:
         temp.write('hostname: test.com')
         os.link(temp.name, config_file)
     result = commands.configure()
@@ -91,7 +91,7 @@ def test_config_file(monkeypatch):
 
 def test_config_env(monkeypatch):
     _config_setup(monkeypatch)
-    temp = tempfile.NamedTemporaryFile(suffix='.yaml')
+    temp = tempfile.NamedTemporaryFile(mode='w', suffix='.yaml')
     monkeypatch.setenv(commands.SATELLITE_POPULATE_FILE, temp.name)
     temp.write('username: dbrownjr')
     temp.flush()
@@ -106,13 +106,13 @@ def test_config_env(monkeypatch):
 def test_config_file_before_env(monkeypatch):
     _config_setup(monkeypatch)
     # env_var
-    env_var = tempfile.NamedTemporaryFile(suffix='.yaml')
+    env_var = tempfile.NamedTemporaryFile(mode='w', suffix='.yaml')
     monkeypatch.setenv(commands.SATELLITE_POPULATE_FILE, env_var.name)
     env_var.write('hostname: environment.variable.com')
     env_var.flush()
     # config_file
     config_file = os.path.join(os.environ['HOME'], commands.CONFIG_FILE)
-    with tempfile.NamedTemporaryFile(dir=_test_dir) as temp:
+    with tempfile.NamedTemporaryFile(mode='w', dir=_test_dir) as temp:
         temp.write('hostname: config.file.com')
         os.link(temp.name, config_file)
     assert os.path.isfile(
