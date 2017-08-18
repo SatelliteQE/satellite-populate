@@ -23,28 +23,55 @@ the populate or a YAML file with mode: validation::
 
 Use :code:`$ satellite-populate --help` for more info
 """
-import sys
-
 import click
+import os
+import sys
+import yaml
 
 from satellite_populate.constants import TEST_DATA
 from satellite_populate.main import populate
+
+CONFIG_FILE = '.satellite_populate.yaml'
+SATELLITE_POPULATE_FILE = 'SATELLITE_POPULATE_FILE'
+
+
+def _read_populate_settings(config_file):
+    """Parse satellite-populate configuration"""
+    if config_file.endswith(('.yml', '.yaml', 'json')):
+        with open(config_file) as config:
+            settings = yaml.load(config)
+            if type(settings) == dict:
+                return settings
+    return {}
+
+
+def configure():
+    """Read satellite-populate settings file."""
+    if os.path.isfile(os.path.join(os.environ['HOME'], CONFIG_FILE)):
+        config = os.path.join(os.environ['HOME'], CONFIG_FILE)
+    elif SATELLITE_POPULATE_FILE in os.environ.keys():
+        config = os.environ[SATELLITE_POPULATE_FILE]
+    else:
+        return {}
+    return _read_populate_settings(config)
 
 
 def execute_populate(datafile, verbose, output, mode, scheme, port, hostname,
                      username, password, report=True, enable_output=True):
     """Populate using the data described in `datafile`:"""
+    settings = configure()
+
     result = populate(
         datafile,
-        verbose=verbose,
-        output=output,
-        mode=mode,
-        scheme=scheme,
-        port=port,
-        hostname=hostname,
-        username=username,
-        password=password,
-        enable_output=enable_output
+        verbose=verbose or settings.get('verbose'),
+        output=output or settings.get('output'),
+        mode=mode or settings.get('mode'),
+        scheme=scheme or settings.get('scheme'),
+        port=port or settings.get('port'),
+        hostname=hostname or settings.get('hostname'),
+        username=username or settings.get('username'),
+        password=password or settings.get('password'),
+        enable_output=enable_output or settings.get('enable_output')
     )
 
     if not report:
@@ -134,12 +161,14 @@ envvar:POPULATE_VERBOSE
               help="""envvar:POPULATE_USERNAME\nAdmin user""")
 @click.option('-p', '--password', default=None, envvar='POPULATE_PASSWORD',
               help="""envvar:POPULATE_PASSWORD\nAdmin Password""")
-@click.option('-t', '--test', default=False, help="Run a simple test",
-              is_flag=True)
+@click.option('-t', '--test', default=False, envvar='POPULATE_TEST',
+              help="""envvar:POPULATE_TEST\nRun a simple test""", is_flag=True)
 @click.option('-r', '--report/--no-report', default=True, is_flag=True,
-              help="Show execution report?")
+              envvar='POPULATE_REPORT',
+              help="""envvar:POPULATE_REPORT\nShow execution report?""")
 @click.option('--enable-output/--no-output', default=True, is_flag=True,
-              help="Should write validation file?")
+              envvar='POPULATE_OUTPUT',
+              help="""envvar:POPULATE_OUTPUT\nShould write validation file?""")
 def main(datafile, verbose, output, mode, scheme, port, hostname, username,
          password, test, report, enable_output):
     """Populates or validates Satellite entities. Full documentation can be
