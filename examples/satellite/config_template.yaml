@@ -1,0 +1,43 @@
+# Testing nailgun entities
+
+vars:
+  name: config_temp
+  comment: auditing
+  new_comment: audit done
+
+actions:
+
+# Create
+  - model: ConfigTemplate
+    register: test_cfg_tmp
+    data:
+      name: "{{ name }}"
+      audit_comment: "{{ comment }}"
+      snippet: 'true'
+      template: temp
+      template_combinations:
+        - 1
+        - 2
+        - 3
+     
+# Update
+  - action: update
+    register: test_cfg_tmp
+    model: ConfigTemplate
+    data:
+      audit_comment: "{{ new_comment }}"
+    search_query:
+      name: "{{ name }}"
+
+# Assert
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_cfg_tmp.audit_comment
+      - audit done
+
+# Delete
+  - action: delete
+    model: ConfigTemplate
+    search_query:
+      name: "{{ name }}"

@@ -1,0 +1,35 @@
+# Testing nailgun entities
+
+vars:
+  name: entity_name
+  os: Debian
+  update_os: Redhat
+
+actions:
+
+  - model: PartitionTable
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      layout: table
+      os_family: "{{ os }}"
+
+  - action: update
+    register: test_entity
+    model: PartitionTable
+    data:
+      os_family: "{{ update_os }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.os_family
+      - "{{ update_os }}"
+
+  - action: delete
+    model: PartitionTable
+    search_query:
+      name: "{{ name }}"
+    

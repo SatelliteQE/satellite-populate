@@ -1,0 +1,39 @@
+# Testing nailgun entities
+
+vars:
+  rule_name: discovery
+
+actions:
+
+# Create
+  - model: DiscoveryRule
+    register: test_drule
+    data:
+      name: "{{ rule_name }}"
+      priority: 1
+      max_count: 100
+      enabled: True
+      hostname: localhost
+      search_: search
+     
+# Update
+  - action: update
+    register: test_drule
+    model: DiscoveryRule
+    data:
+      enabled: False
+    search_query:
+      name: "{{ rule_name }}"
+
+# Assert
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_drule.enabled
+      - False
+
+# Delete
+  - action: delete
+    model: DiscoveryRule
+    search_query:
+      name: "{{ rule_name }}"

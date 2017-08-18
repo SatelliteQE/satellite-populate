@@ -1,0 +1,32 @@
+# Testing nailgun entities
+
+vars:
+  name: env
+  new_name: testenvironment
+
+actions:
+
+  - model: Environment
+    register: test_env
+    data:
+      name: "{{ name }}"
+  
+  - action: update
+    register: test_env
+    model: Environment
+    data:
+      name: "{{ new_name }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_env.name
+      - "{{ new_name }}"
+
+  # - action: delete
+  #   model: Environment
+  #   search_query:
+  #     name: "{{ new_name }}"
+        

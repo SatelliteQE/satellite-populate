@@ -1,0 +1,37 @@
+# Testing nailgun entities
+
+vars:
+  name: SubNet
+  to: 127.0.0.1
+  update_to: 127.0.1.1
+
+
+actions:
+
+  - model: Subnet
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      network: 127.0.0.1
+      from: 127.0.0.1
+      to: "{{ to }}"
+
+  - action: update
+    register: test_entity
+    model: Subnet
+    data:
+      to: "{{ update_to }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.to
+      - "{{ update_to }}"
+
+  - action: delete
+    model: Subnet
+    search_query:
+      name: "{{ name }}"
+    

@@ -1,0 +1,34 @@
+# Testing nailgun entities
+
+vars:
+  name: Location
+  desc: Raleigh, NC
+  update_desc: RDU
+
+actions:
+
+  - model: Location
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      description: "{{ desc }}"
+
+  - action: update
+    register: test_entity
+    model: Location
+    data:
+      description: "{{ update_desc }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.description
+      - "{{ update_desc }}"
+
+  - action: delete
+    model: Location
+    search_query:
+      name: "{{ name }}"
+    

@@ -1,0 +1,40 @@
+# Testing nailgun entities
+
+vars:
+  name: Repo
+
+actions:
+
+  - model: Repository
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      content_type: yum
+      checksum_type: 'sha256'
+      container_repository_name: container
+      docker_upstream_name: busybox
+      download_policy: on_demand
+      label: test
+      mirror_on_sync: False
+      unprotected: False
+      url: http://inecas.fedorapeople.org/fakerepos/zoo3/
+
+  - action: update
+    register: test_entity
+    model: Repository
+    data:
+      content_type: docker
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.content_type
+      - docker
+
+  - action: delete
+    model: Repository
+    search_query:
+      name: "{{ name }}"
+    

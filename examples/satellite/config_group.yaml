@@ -1,0 +1,36 @@
+# Testing nailgun entities
+
+vars:
+  name: config_grp
+  new_name: config_grp2
+
+actions:
+
+# Create
+  - model: ConfigGroup
+    register: test_group
+    data:
+      name: "{{ name }}"
+     
+# Update
+  - action: update
+    register: test_group
+    model: ConfigGroup
+    data:
+      name: "{{ new_name }}"
+    search_query:
+      name: "{{ name }}"
+
+# Assert
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_group.name
+      - "{{ new_name }}"
+
+# Delete
+  # No attribute delete
+  # - action: delete
+  #   model: ConfigGroup
+  #   search_query:
+  #     name: "{{ new_name }}"

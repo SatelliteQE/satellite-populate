@@ -1,0 +1,37 @@
+# Testing nailtun entities
+
+vars:
+  arch_name: x172-128
+  update_name: x43-32
+
+actions:
+
+# Create
+  - model: Architecture
+    register: default_arch
+    data:
+      name: "{{ arch_name }}"
+      
+# Update
+  - action: update
+    register: default_arch
+    model: Architecture
+    data:
+      name: "{{ update_name }}"
+    search_query:
+      name: "{{ arch_name }}"
+
+# Assert
+  - action: assertion
+    log: Checking that Architecture name was updated
+    operation: eq
+    data:
+      - from_registry: default_arch.name
+      - "{{ update_name }}"
+
+# Delete
+  - action: delete
+    model: Architecture
+    search_query:
+      name: "{{ update_name }}"
+

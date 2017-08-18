@@ -1,0 +1,34 @@
+# Test nailgun entities
+
+vars:
+  name: domain_name
+  fullname: domain_name.example.com
+  update_full: test.domain_name.example.com
+
+actions:
+
+  - model: Domain
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      fullname: "{{ fullname }}"
+
+  - action: update
+    register: test_entity
+    model: Domain
+    data:
+      fullname: "{{ update_full }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.fullname
+      - "{{ update_full }}"
+
+  # - action: delete
+  #   model: Domain
+  #   search_query:
+  #     name: "{{ name }}"
+    

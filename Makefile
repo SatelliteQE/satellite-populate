@@ -53,9 +53,11 @@ lint: ## check style with flake8
 test: lint ## run tests quickly with the default Python
 	py.test
 
-
 test-all: ## run tests on every Python version with tox
 	tox
+
+test-entities: ## run satellite-populate examples for nailgun entities
+	for f in examples/satellite/*.yaml; do satellite-populate $$f; done
 
 coverage: ## check code coverage quickly with the default Python
 	coverage run --source satellite_populate -m pytest
@@ -89,3 +91,4 @@ install: clean ## install the package to the active Python's site-packages
 
 bump: test
 	bumpversion patch --config-file=setup.cfg
+

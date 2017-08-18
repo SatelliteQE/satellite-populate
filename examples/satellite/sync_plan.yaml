@@ -1,0 +1,54 @@
+# Testing nailgun entities
+
+vars:
+  name: SyncPlan
+  desc: Nailgun test
+  update_desc: Updated description
+
+actions:
+
+  - model: Organization
+    register: org
+    data:
+      name: My Org
+      
+  - model: SyncPlan
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      description: satellite-populate test
+      interval: daily
+      enabled: True
+      organization:
+        from_registry: org
+
+  - action: update
+    register: test_entity
+    model: SyncPlan
+    data:
+      description: "{{ update_desc }}"
+      organization: 
+        from_registry: org
+    search_query:
+      name: "{{ name }}"
+      organization:
+        from_registry: org
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.description
+      - "{{ update_desc }}"
+
+  # - action: delete
+  #   model: SyncPlan
+  #   search_query:
+  #     name: "{{ name }}"
+  #     organization:
+  #       from_registry: org
+
+  - action: delete
+    model: Organization
+    search_query:
+      name: My Org
+    

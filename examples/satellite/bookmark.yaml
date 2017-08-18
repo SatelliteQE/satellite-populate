@@ -1,0 +1,38 @@
+# Testing nailgun entities
+
+vars:
+  book_name: Mark
+  book_query: last_report and status.enabled = true
+
+actions:
+
+# Create
+  - model: Bookmark
+    register: test_book
+    data:
+      name: "{{ book_name }}"
+      public: True
+      query: last_report
+      controller: job_invocations
+
+# Update
+  - action: update
+    register: test_book
+    model: Bookmark
+    data:
+      query: "{{ book_query }}"
+    search_query:
+      name: "{{ book_name }}"
+
+# Assert
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_book.query
+      - "{{ book_query }}"
+
+# Delete
+  - action: delete
+    model: Bookmark
+    search_query:
+      name: "{{ book_name }}"

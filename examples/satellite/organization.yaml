@@ -1,0 +1,36 @@
+# Testing nailgun entities
+
+vars:
+  name: Red Hat
+  desc: RHEL
+  update_desc: Red Hat Enterprise Linux
+
+actions:
+
+  - model: Organization
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      description: "{{ desc }}"
+      label: RHT
+      title: REDHAT
+
+  - action: update
+    register: test_entity
+    model: Organization
+    data:
+      description: "{{ update_desc }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.description
+      - "{{ update_desc }}"
+
+  - action: delete
+    model: Organization
+    search_query:
+      name: "{{ name }}"
+    

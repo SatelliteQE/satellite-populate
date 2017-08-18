@@ -1,0 +1,32 @@
+# Testing nailgun entities
+
+vars:
+  name: Role
+  update_name: NewRole
+
+actions:
+
+  - model: Role
+    register: test_entity
+    data:
+      name: "{{ name }}"
+
+  - action: update
+    register: test_entity
+    model: Role
+    data:
+      name: "{{ update_name }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.name
+      - "{{ update_name }}"
+
+  - action: delete
+    model: Role
+    search_query:
+      name: "{{ update_name }}"
+    

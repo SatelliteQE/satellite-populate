@@ -1,0 +1,34 @@
+# Testing nailgun entities
+
+vars:
+  name: AbsCompResLib
+  desc: Nailgun test
+  update_desc: Updated
+
+actions:
+
+  - model: AbstractComputeResource
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      description: "{{ desc }}"
+      provider: Libvirt
+
+  - action: update
+    register: test_entity
+    model: AbstractComputeResource
+    data:
+      description: "{{ update_desc }}"
+    search_query:
+      name: "{{ entity_name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.description
+      - "{{ update_desc }}"
+
+  - action: delete
+    model: AbstractComputeResource
+    search_query:
+      name: "{{ entity_name }}"
