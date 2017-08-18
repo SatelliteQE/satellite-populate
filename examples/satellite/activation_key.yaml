@@ -1,0 +1,61 @@
+# Testing nailgun entities
+
+vars:
+  org_name: Activation Key Org
+  key_name: activate
+  update_name: Activate Key
+
+actions:
+
+# Setup
+  - model: Organization
+    register: key_org
+    data:
+      name: "{{ org_name }}"
+      label: label
+      description: Organization for testing activation keys
+
+# Create
+  - model: ActivationKey
+    register: test_key
+    data:
+      name: "{{ key_name }}"
+      max_hosts: 10
+      auto_attach: True
+      unlimited_hosts: False
+      description: Test activation key
+      organization:
+        from_registry: key_org
+
+# Update
+  - action: update
+    register: test_key
+    model: ActivationKey
+    data:
+      name: "{{ update_name }}"
+    search_query:
+      name: "{{ key_name }}"
+      organization:
+        from_registry: key_org
+
+# Assert
+  - action: assertion
+    log: Checking that Activation Key name was updated
+    operation: eq
+    data:
+      - from_registry: test_key.name
+      - "{{ update_name }}"
+
+# Delete
+  - action: delete
+    model: ActivationKey
+    search_query:
+      name: "{{ update_name }}"
+      organization:
+        from_registry: key_org
+
+# Cleanup
+  - action: delete
+    model: Organization
+    search_query:
+      name: "{{ org_name }}"

@@ -1,0 +1,39 @@
+# Test nailgun entities
+
+vars:
+  name: Fedora  
+  release: F25
+  update_rel: F26
+
+actions:
+
+  - model: OperatingSystem
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      family: Redhat
+      release_name: "{{ release }}"
+      major: 26
+      minor: 25
+      title: Fedora Workstation
+      description: Fedora linux
+
+  - action: update
+    register: test_entity
+    model: OperatingSystem
+    data:
+      release_name: "{{ update_rel }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.release_name
+      - "{{ update_rel }}"
+
+  - action: delete
+    model: OperatingSystem
+    search_query:
+      name: "{{ name }}"
+    

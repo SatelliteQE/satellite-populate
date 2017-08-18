@@ -1,0 +1,52 @@
+# Testing satellite-populate actions on GPGKey entities
+
+vars:
+  name: GPGKey
+  org_name: Org
+  new_content: content
+
+actions:
+
+  - model: Organization
+    register: org
+    data:
+      name: "{{ org_name }}"
+      label: test_organization
+      description: GPG Keys require an Organization
+
+  - model: GPGKey
+    register: test_gpg
+    data:
+      name: "{{ name }}"
+      content: None
+      organization:
+        from_registry: org
+  
+  - action: update
+    register: test_gpg
+    model: GPGKey
+    data:
+      content: "{{ new_content }}"
+      organization:
+        from_registry: org
+    search_query:
+      name: "{{ name }}"
+      organization:
+        from_registry: org
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_gpg.content
+      - "{{ new_content }}"
+
+  # - action: delete
+  #   model: GPGKey
+  #   search_query:
+  #     name: "{{ name }}"
+        
+  # Cleanup
+  - action: delete
+    model: Organization
+    search_query:
+      name: "{{ org_name }}"

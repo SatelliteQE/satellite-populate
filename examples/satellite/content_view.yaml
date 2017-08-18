@@ -1,0 +1,37 @@
+# Testing nailgun entities
+
+vars:
+  name: test content view
+  composite_name: composite content view
+
+actions:
+
+  - model: ContentView
+    register: test_view
+    data:
+      name: "{{ name }}"
+      composite: False
+      description: satellite-populate content view test
+      label: test
+      next_version: 2
+      content_host_count: 0
+      last_published: 07/28/2017
+  
+  - action: update
+    register: test_view
+    model: ContentView
+    data:
+      composite: True
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_view.composite
+      - True
+
+  - action: delete
+    model: ContentView
+    search_query:
+      name: "{{ name }}"

@@ -1,0 +1,38 @@
+# Testing nailgun entities
+
+vars:
+  login: dbrownjr
+  pass: redhat
+  update_pass: password
+
+actions:
+
+  - model: User
+    register: test_entity
+    data:
+      admin: True
+      firstname: Chris
+      lastname: Brown
+      login: "{{ login }}"
+      mail: dbrownjr@redhat.com
+      password: "{{ pass }}"
+
+  - action: update
+    register: test_entity
+    model: User
+    data:
+      password: "{{ update_pass }}"
+    search_query:
+      login: "{{ login }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.password
+      - "{{ update_pass }}"
+
+  - action: delete
+    model: User
+    search_query:
+      login: "{{ login }}"
+    

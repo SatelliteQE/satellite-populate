@@ -1,0 +1,36 @@
+# Testing nailgun entities
+
+vars:
+  name: host-collection
+  desc: Nailgun test
+  update_desc: Updated
+
+actions:
+
+  - model: HostCollection
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      description: "{{ desc }}"
+      max_hosts: 10
+      unlimited_hosts: False
+
+  - action: update
+    register: test_entity
+    model: HostCollection
+    data:
+      description: "{{ update_desc }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.description
+      - "{{ update_desc }}"
+
+  - action: delete
+    model: HostCollection
+    search_query:
+      name: "{{ name }}"
+    

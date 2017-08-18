@@ -1,0 +1,44 @@
+# Testing nailgun entities
+
+vars:
+  var: SmartVar
+  default_value: default
+  update_default: test
+
+actions:
+
+  - model: PuppetClass
+    register: puppet
+    data:
+      name: Puppet
+  
+  - model: SmartVariable
+    register: test_entity
+    data:
+      default_value: "{{ default_value }}"
+      description: satellite-populate test
+      variable: "{{ var }}"
+      hidden_value: False
+      variable_type: string
+      puppetclass:
+        from_registry: puppet
+
+  - action: update
+    register: test_entity
+    model: SmartVariable
+    data:
+      default_value: "{{ update_default }}"
+    search_query:
+      variable: "{{ var }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.default_value
+      - "{{ update_default }}"
+
+  - action: delete
+    model: SmartVariable
+    search_query:
+      variable: "{{ var }}"
+    

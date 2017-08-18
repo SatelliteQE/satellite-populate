@@ -1,0 +1,48 @@
+# Testing nailgun entities
+
+vars:
+  name: provision
+  combinations:
+    - a
+    - b
+    - c
+  new_combinations:
+    - x
+    - y
+    - z
+
+actions:
+
+# Create
+  - model: ProvisioningTemplate
+    register: test_prov_tmp
+    data:
+      name: "{{ name }}"
+      locked: False
+      audit_comment: comment
+      snippet: True
+      template: temp
+      template_combinations: "{{ combinations }}"
+             
+# Update
+  - action: update
+    register: test_prov_tmp
+    model: ProvisioningTemplate
+    data:
+      template_combinations: "{{ new_combinations }}"
+    search_query:
+      name: "{{ name }}"
+
+# Assert
+  - action: assertion
+    log: Checking that ProvisioningTemplate name was updated
+    operation: eq
+    data:
+      - from_registry: test_prov_tmp.template_combinations
+      - "{{ new_combinations }}"
+
+# Delete
+  - action: delete
+    model: ProvisioningTemplate
+    search_query:
+      name: "{{ name }}"

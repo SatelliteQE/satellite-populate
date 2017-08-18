@@ -30,8 +30,68 @@ RAW_SEARCH_RULES = {
     'repository': {
         'url': {'remove': True},
     },
-    # force Architecture to always perform raw_search
-    'architecture': {'_force_raw': True}
+    'architecture': {'_force_raw': True},
+    'bookmark': {
+        '_force_raw': True,
+        'query': {'remove': True},
+        'public': {'remove': True}
+    },
+    'configtemplate': {
+        '_force_raw': True,
+        'template_combinations': {'remove': True},
+        'audit_comment': {'remove': True},
+        'locked': {'remove': True},
+        'organization': {'remove': True},
+        'template': {'remove': True},
+        'template_kind': {'remove': True},
+        'snippet': {'remove': True},
+        'operatingsystem': {'remove': True},
+    },
+    'interface': {'_force_raw': True},
+    'location': {'_force_raw': True},
+    'media': {
+        '_force_raw': True,
+        'os_family': {'remove': True},
+        'path': {'remove': True},
+        'location': {'remove': True},
+        'operatingsystem': {'remove': True},
+        'organization': {'remove': True},
+    },
+    'operatingsystem': {
+        '_force_raw': True,
+        'release_name': {'remove': True},
+        'description': {'remove': True},
+        'architecture': {'remove': True},
+        'family': {'remove': True},
+        'major': {'remove': True},        
+        'minor': {'remove': True},
+        'medium': {'remove': True},
+        'ptable': {'remove': True},
+        'config_template': {'remove': True},
+        'provisioning_template': {'remove': True},
+        'password_hash': {'remove': True},
+        'title': {'remove': True},        
+    },
+    'partitiontable': {
+        '_force_raw': True,
+        'layout': {'remove': True},
+        'location': {'remove': True},
+        'organization': {'remove': True},
+        'os_family': {'remove': True},
+    },
+    'provisioningtemplate': {
+        '_force_raw': True,
+        'audit_comment': {'remove': True},
+        'locked': {'remove': True},
+        'organization': {'remove': True},
+        'location': {'remove': True},
+        'template': {'remove': True},
+        'template_combinations': {'remove': True},
+        'template_kind': {'remove': True},
+        'snippet': {'remove': True},
+        'operatingsystem': {'remove': True},
+    },
+    'role': {'_force_raw': True},
 }
 
 DEFAULT_CONFIG = SmartDict({

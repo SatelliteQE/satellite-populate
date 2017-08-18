@@ -1,0 +1,34 @@
+# Test nailgun entities
+
+vars:
+  name: Host Group
+  password: password
+  new_password: rootroot
+  
+actions:
+
+  - model: HostGroup
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      root_pass: "{{ password }}"
+
+  - action: update
+    register: test_entity
+    model: HostGroup
+    data:
+      root_pass: "{{ new_password }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.root_pass
+      - "{{ new_password }}"
+
+  # - action: delete
+  #   model: HostGroup
+  #   search_query:
+  #     name: "{{ name }}"
+    

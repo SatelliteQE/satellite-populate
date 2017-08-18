@@ -1,0 +1,35 @@
+# Testing nailgun entities
+
+vars:
+  name: Life
+  desc: Nailgun test
+  update_desc: Updated description
+
+actions:
+
+  - model: LifecycleEnvironment
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      description: "{{ desc }}"
+      label: lifecycle_label
+
+  - action: update
+    register: test_entity
+    model: LifecycleEnvironment
+    data:
+      description: "{{ update_desc }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.description
+      - "{{ update_desc }}"
+
+  - action: delete
+    model: LifecycleEnvironment
+    search_query:
+      name: "{{ name }}"
+    

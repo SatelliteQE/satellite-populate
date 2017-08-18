@@ -1,0 +1,34 @@
+# Testing nailgun entities
+
+vars:
+  name: My Media
+  os: Redhat
+  update_os: Windows
+
+actions:
+
+  - model: Media
+    register: test_entity
+    data:
+      name: "{{ name }}"
+      os_family: "{{ os }}"
+
+  - action: update
+    register: test_entity
+    model: Media
+    data:
+      os_family: "{{ update_os }}"
+    search_query:
+      name: "{{ name }}"
+
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_entity.os_family
+      - "{{ update_os }}"
+
+  - action: delete
+    model: Media
+    search_query:
+      name: "{{ name }}"
+    

@@ -1,0 +1,37 @@
+# Testing nailgun entities
+
+vars:
+  param_name: parameter
+  value: test_value
+  new_value: 100
+
+actions:
+
+# Create
+  - model: CommonParameter
+    register: test_comm_param
+    data:
+      name: "{{ param_name }}"
+      value: "{{ value }}"
+
+# Update
+  - action: update
+    register: test_comm_param
+    model: CommonParameter
+    data:
+      value: "{{ new_value }}"
+    search_query:
+      name: "{{ param_name }}"
+
+# Assert
+  - action: assertion
+    operation: eq
+    data:
+      - from_registry: test_comm_param.value
+      - "{{ new_value }}"
+
+# Delete
+  - action: delete
+    model: CommonParameter
+    search_query:
+      name: "{{ param_name }}"
